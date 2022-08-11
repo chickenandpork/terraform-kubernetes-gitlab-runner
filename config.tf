@@ -81,6 +81,11 @@ locals {
         host_path = "${config.host_path}"
         read_only = ${lookup(config, "read_only", "false")}
     %{~endfor~}
+    %{~for name, config in var.build_job_pvcs~}
+      [[runners.kubernetes.volumes.pvc]]
+        name = "${config.name}"
+        mount_path = "${config.path}"
+    %{~endfor~}
     %{~if lookup(var.build_job_secret_volumes, "name", null) != null~}
       [[runners.kubernetes.volumes.secret]]
         name = ${lookup(var.build_job_secret_volumes, "name", "")}
