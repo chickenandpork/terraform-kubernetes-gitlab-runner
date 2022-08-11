@@ -15,7 +15,7 @@ resource "helm_release" "gitlab_runner" {
 
 
   values = [
-    yamlencode(merge({
+    nonsensitive(yamlencode(merge({
       image                   = var.runner_image
       gitlabUrl               = var.gitlab_url
       concurrent              = var.concurrent
@@ -37,7 +37,7 @@ resource "helm_release" "gitlab_runner" {
       tolerations    = var.manager_node_tolerations
       podLabels      = var.manager_pod_labels
       podAnnotations = var.manager_pod_annotations
-    }, var.values)),
+    }, var.values))),
     local.values_file
   ]
 
