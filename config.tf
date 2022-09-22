@@ -27,6 +27,9 @@ locals {
   %{~if var.build_job_default_container_image != null~}
     image = "${var.build_job_default_container_image}"
   %{~endif~}
+  %{~for name,config in  var.build_job_overwrite_max_allowed~}
+    ${name}_overwrite_max_allowed = "${config}"
+  %{~endfor~}
   %{~if var.create_service_account == true~}
     service_account = "${var.release_name}-${var.service_account}"
   %{~else~}
