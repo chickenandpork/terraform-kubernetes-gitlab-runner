@@ -127,6 +127,41 @@ variable "build_job_mount_docker_socket" {
   type        = bool
 }
 
+# Unlocking overwrites of resource requests/limits in Gitlab-CI file.  These MUST be non-null to
+# allow CI files to overwrite, or else the overwrite variable is ignored
+#
+# related: https://gitlab.com/gitlab-org/gitlab-runner/-/merge_requests/874 <- define overwrites
+variable "build_job_overwrite_max_allowed" {
+  description = <<-EOD
+      A K/V of config.toml overwrites permitted as gitlab-CI variables and their max overwrites, for example:
+
+      build_job_overwrite_max_allowed = {
+          cpu_request = "200m"            | permit KUBERNETES_CPU_REQUEST up to 200mCPU     (all defaults are null)
+          memory_request = "2Gi"          | permit KUBERNETES_MEMORY_REQUEST up to 2GiB
+          cpu_limit = "300m"              | permit KUBERNETES_CPU_LIMIT up to 300mCPU
+          memory_limit = "3Gi"            | permit KUBERNETES_MEMORY_LIMIT up to 3GiB
+          helper_cpu_request = "200m"     | permit KUBERNETES_HELPER_CPU_REQUEST up to 200mCPU
+          helper_memory_request = "2Gi"   | permit KUBERNETES_HELPER_MEMORY_REQUEST up to 2GiB
+          helper_cpu_limit = "300m"       | permit KUBERNETES_HELPER_CPU_LIMIT up to 300mCPU
+          helper_memory_limit = "3Gi"     | permit KUBERNETES_HELPER_MEMORY_LIMIT up to 3GiB
+          service_cpu_request = "200m"    | permit KUBERNETES_SERVICE_CPU_REQUEST up to 200mCPU
+          service_memory_request = "2Gi"  | permit KUBERNETES_SERVICE_MEMORY_REQUEST up to 2GiB
+          service_cpu_limit = "300m"      | permit KUBERNETES_SERVICE_CPU_LIMIT up to 300mCPU
+          service_memory_limit = "3Gi"    | permit KUBERNETES_SERVICE_MEMORY_LIMIT up to 3GiB
+    }
+
+    If not given, it will default to null, deactivating the KUBERNETES_ variable overwrite
+    EOD
+  type        = map(string)
+  validation {
+    condition = alltrue([
+      for k, v in var.build_job_overwrite_max_allowed : contains(["cpu_request", "memory_request", "cpu_limit", "memory_limit", "helper_cpu_request", "helper_memory_request", "helper_cpu_limit", "helper_memory_limit", "service_cpu_request", "service_memory_request", "service_cpu_limit", "service_memory_limit"], k)
+    ])
+    error_message = "Parameters/keys must be one of cpu_request, memory_request, cpu_limit, memory_limit, helper_cpu_request, helper_memory_request, helper_cpu_limit, helper_memory_limit, service_cpu_request, service_memory_request, service_cpu_limit, service_memory_limit."
+  }
+  default = {}
+}
+
 variable "build_job_pvcs" {
   default     = {}
   description = "A map of name:path for which each values' path is where the Persistent Volume so named should be mounted in the build container.  ie: build_job_pvcs = { 'vol-12345678' = '/root/caches/other-cache' }}"
